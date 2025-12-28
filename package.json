@@ -1,0 +1,20 @@
+{
+  "name": "qrcode-worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.19",
+    "prettier": "^3.7.4",
+    "vitest": "~3.2.0",
+    "wrangler": "^4.54.0"
+  },
+  "volta": {
+    "node": "24.12.0"
+  }
+}
