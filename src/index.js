@@ -1,15 +1,66 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import QRCode from "qrcode";
 
 export default {
   async fetch(request, env, ctx) {
-    return new Response("Hello World!");
+    const url = new URL(request.url);
+
+    if (request.method !== "GET") {
+      return new Response("Method not allowed", { status: 405 });
+    }
+
+    const urlToEncode = url.searchParams.get("url");
+    if (!urlToEncode) {
+      return new Response("Missing required parameter: url", {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+
+    const options = {
+      type: "svg",
+      margin: 1,
+      errorCorrectionLevel: "L",
+    };
+
+    // Parse optional qrcode options from query parameters
+    const stringParams = ["errorCorrectionLevel", "color.dark", "color.light"];
+    for (const param of stringParams) {
+      const value = url.searchParams.get(param);
+      if (value) {
+        if (param.includes(".")) {
+          const [parent, child] = param.split(".");
+          if (!options[parent]) options[parent] = {};
+          options[parent][child] = value;
+        } else {
+          options[param] = value;
+        }
+      }
+    }
+
+    const numberParams = ["margin", "scale"];
+    for (const param of numberParams) {
+      const value = url.searchParams.get(param);
+      if (value) {
+        const num = parseInt(value, 10);
+        if (!isNaN(num) && num > 0) {
+          options[param] = num;
+        }
+      }
+    }
+
+    try {
+      const svg = await QRCode.toString(urlToEncode, options);
+      return new Response(svg, {
+        headers: {
+          "Content-Type": "image/svg+xml",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    } catch (error) {
+      return new Response(`Invalid input: ${error.message}`, {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
   },
 };
