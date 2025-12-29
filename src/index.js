@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
 
 const stringParams = ["errorCorrectionLevel", "color.dark", "color.light"];
-const numberParams = ["margin", "scale"];
+const numberParams = ["margin"];
 
 export default {
   async fetch(request, env, ctx) {
@@ -70,8 +70,8 @@ export default {
     for (const param of numberParams) {
       const value = url.searchParams.get(param);
       if (value) {
-        const num = parseInt(value, 10);
-        if (!isNaN(num) && num > 0) {
+        const num = Number(value);
+        if (!isNaN(num)) {
           options[param] = num;
         }
       }
