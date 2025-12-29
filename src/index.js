@@ -10,10 +10,17 @@ export default {
 
     const urlToEncode = url.searchParams.get("url");
     if (!urlToEncode) {
-      return new Response("Missing required parameter: url", {
-        status: 400,
-        headers: { "Content-Type": "text/plain" },
-      });
+      return new Response(
+        [
+          `${url.hostname} - QR code generator service`,
+          `Usage: ${url.hostname}/?url=<URL>`,
+          `Documentation: https://github.com/rossjrw/qrcode-worker`,
+        ].join("\n\n"),
+        {
+          status: 400,
+          headers: { "Content-Type": "text/plain" },
+        },
+      );
     }
 
     const options = {
