@@ -1,26 +1,51 @@
 import QRCode from "qrcode";
 
+const stringParams = ["errorCorrectionLevel", "color.dark", "color.light"];
+const numberParams = ["margin", "scale"];
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    if (request.method !== "GET") {
-      return new Response("Method not allowed", { status: 405 });
+    // Whitelist+normalise params to create cache key
+    const allowedParams = ["url", ...stringParams, ...numberParams];
+    const normalisedParams = allowedParams
+      .map((paramName) => [paramName, url.searchParams.get(paramName)])
+      .filter(([, paramValue]) => paramValue != null)
+      .sort(([paramName1], [paramName2]) =>
+        paramName1.localeCompare(paramName2),
+      );
+    const cacheKey = new Request(
+      `${url.origin}/?${new URLSearchParams(normalisedParams).toString()}`,
+      request,
+    );
+
+    // Try to get from cache first
+    const cache = caches.default;
+    let response = await cache.match(cacheKey);
+    if (response) {
+      return response;
     }
 
     const urlToEncode = url.searchParams.get("url");
     if (!urlToEncode) {
-      return new Response(
+      response = new Response(
         [
           `${url.hostname} - QR code generator service`,
-          `Usage: ${url.hostname}/?url=<URL>`,
+          `Usage: GET ${url.hostname}/?url=<URL>`,
           `Documentation: https://github.com/rossjrw/qrcode-worker`,
         ].join("\n\n"),
         {
           status: 400,
-          headers: { "Content-Type": "text/plain" },
+          headers: {
+            "Content-Type": "text/plain",
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
         },
       );
+
+      ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      return response;
     }
 
     const options = {
@@ -30,7 +55,6 @@ export default {
     };
 
     // Parse optional qrcode options from query parameters
-    const stringParams = ["errorCorrectionLevel", "color.dark", "color.light"];
     for (const param of stringParams) {
       const value = url.searchParams.get(param);
       if (value) {
@@ -43,8 +67,6 @@ export default {
         }
       }
     }
-
-    const numberParams = ["margin", "scale"];
     for (const param of numberParams) {
       const value = url.searchParams.get(param);
       if (value) {
@@ -57,17 +79,20 @@ export default {
 
     try {
       const svg = await QRCode.toString(urlToEncode, options);
-      return new Response(svg, {
+      response = new Response(svg, {
         headers: {
           "Content-Type": "image/svg+xml",
           "Cache-Control": "public, max-age=31536000, immutable",
         },
       });
     } catch (error) {
-      return new Response(`Invalid input: ${error.message}`, {
+      response = new Response(`Invalid input: ${error.message}`, {
         status: 400,
         headers: { "Content-Type": "text/plain" },
       });
     }
+
+    ctx.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
   },
 };

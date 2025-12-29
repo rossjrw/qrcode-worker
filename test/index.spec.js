@@ -8,8 +8,8 @@ import { describe, it, expect } from "vitest";
 import worker from "../src";
 
 const sampleOutput = {
-  "test": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h23v23H0z"/><path stroke="#000000" d="M1 1.5h7m1 0h2m2 0h1m1 0h7M1 2.5h1m5 0h1m2 0h1m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h3m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m7 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2M1 9.5h4m2 0h1m1 0h1m1 0h1m2 0h1m2 0h3m1 0h1M1 10.5h1m2 0h3m1 0h1m2 0h1m1 0h1m2 0h1m1 0h2m1 0h1M1 11.5h1m1 0h1m1 0h3m3 0h1m1 0h5m2 0h2M1 12.5h1m1 0h2m3 0h2m1 0h1m1 0h2m3 0h1m1 0h1M2 13.5h2m1 0h1m1 0h1m2 0h3m1 0h1m2 0h2m1 0h1M9 14.5h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 15.5h7m3 0h1m2 0h2m1 0h3M1 16.5h1m5 0h1m2 0h1m1 0h4m2 0h2M1 17.5h1m1 0h3m1 0h1m2 0h3m2 0h1m3 0h3M1 18.5h1m1 0h3m1 0h1m1 0h2m3 0h1m2 0h2m1 0h1M1 19.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1M1 20.5h1m5 0h1m1 0h5m1 0h1m1 0h2m2 0h1M1 21.5h7m1 0h2m1 0h2m2 0h1"/></svg>\n'
-}
+  test: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h23v23H0z"/><path stroke="#000000" d="M1 1.5h7m1 0h2m2 0h1m1 0h7M1 2.5h1m5 0h1m2 0h1m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h3m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m7 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2M1 9.5h4m2 0h1m1 0h1m1 0h1m2 0h1m2 0h3m1 0h1M1 10.5h1m2 0h3m1 0h1m2 0h1m1 0h1m2 0h1m1 0h2m1 0h1M1 11.5h1m1 0h1m1 0h3m3 0h1m1 0h5m2 0h2M1 12.5h1m1 0h2m3 0h2m1 0h1m1 0h2m3 0h1m1 0h1M2 13.5h2m1 0h1m1 0h1m2 0h3m1 0h1m2 0h2m1 0h1M9 14.5h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 15.5h7m3 0h1m2 0h2m1 0h3M1 16.5h1m5 0h1m2 0h1m1 0h4m2 0h2M1 17.5h1m1 0h3m1 0h1m2 0h3m2 0h1m3 0h3M1 18.5h1m1 0h3m1 0h1m1 0h2m3 0h1m2 0h2m1 0h1M1 19.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1M1 20.5h1m5 0h1m1 0h5m1 0h1m1 0h2m2 0h1M1 21.5h7m1 0h2m1 0h2m2 0h1"/></svg>\n',
+};
 
 describe("qrcode worker", () => {
   it("responds with a qr code (unit)", async () => {
@@ -17,11 +17,15 @@ describe("qrcode worker", () => {
     const ctx = createExecutionContext();
     const response = await worker.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
-    expect(await response.text()).toMatchInlineSnapshot(`"${sampleOutput.test}"`);
+    expect(await response.text()).toMatchInlineSnapshot(
+      `"${sampleOutput.test}"`,
+    );
   });
 
   it("responds with a qr code (integration)", async () => {
     const response = await SELF.fetch("http://example.com?url=test");
-    expect(await response.text()).toMatchInlineSnapshot(`"${sampleOutput.test}"`);
+    expect(await response.text()).toMatchInlineSnapshot(
+      `"${sampleOutput.test}"`,
+    );
   });
 });
